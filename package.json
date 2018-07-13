@@ -1,6 +1,6 @@
 {
   "name": "@pii/server-express",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Express server implementation for Pii Application",
   "main": "dist/index.js",
   "engines": {
