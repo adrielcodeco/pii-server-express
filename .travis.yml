@@ -1,0 +1,59 @@
+language: node_js
+node_js:
+  - "10"
+  - "9"
+  - "8"
+  - "7"
+  - "6"
+os:
+  - linux
+  - osx
+git:
+  depth: false
+  quiet: true
+branches:
+  only:
+    - master
+    - /^v\d{1,2}\.\d{1,2}\.\d{1,4}$/
+cache:
+  directories:
+    - "node_modules"
+install:
+  - npm i
+  - npm i -g node-gyp
+script:
+  - npm run lint
+  - npm run typecheck
+  - npm run build
+  - npm run test
+  - npm run coveralls
+jobs:
+  include:
+    - stage: Github Release
+      install: skip
+      script: skip
+      deploy:
+        - provider: releases
+          api_key: $GITHUB_OAUTH_TOKEN
+          file: $TRAVIS_BUILD_DIR
+          skip_cleanup: true
+          on:
+            branch: master
+            tags: true
+    - stage: Deploy
+      install: skip
+      script: skip
+      deploy:
+        - provider: npm
+          email: $NPM_EMAIL
+          api_key: $NPM_AUTH_TOKEN
+          skip_cleanup: true
+          on:
+            branch: master
+            tags: true
+stages:
+  - test
+  - name: Github Release
+    if: tag IS present
+  - name: Deploy
+    if: tag IS present
