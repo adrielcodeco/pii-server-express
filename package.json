@@ -35,9 +35,10 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@pii/application": "^1.0.4",
-    "@pii/di": "^1.0.2",
+    "@pii/application": "file:../pii-application",
+    "@pii/di": "file:../pii-di",
     "body-parser": "^1.18.3",
+    "colors": "github:adrielcodeco/colors.js",
     "compression": "^1.7.2",
     "connect-redis": "^3.3.3",
     "cookie-parser": "^1.4.3",
@@ -50,7 +51,10 @@
     "morgan": "^1.9.0",
     "raven": "^2.6.2",
     "uuid": "^3.2.1",
-    "winston": "^2.4.2"
+    "winston": "^3.0.0"
+  },
+  "peerDependencies": {
+    "express": "^4.16.3"
   },
   "devDependencies": {
     "@types/compression": "0.0.36",

@@ -1,8 +1,9 @@
 /// <reference types="node" />
 import * as http from 'http';
-import express from 'express';
+import * as express from 'express';
 import { Server, ILogger } from '@pii/application';
 import { ExpressServerOptions } from './expressServerOptions';
+export declare type RequestExtension = (req: any, res: any, next: Function) => void;
 export declare class ExpressServer extends Server<http.Server, ExpressServerOptions> {
     express: express.Express;
     protected log: ILogger;

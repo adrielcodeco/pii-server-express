@@ -5,8 +5,8 @@ export interface ExpressServerOptions extends ServerOptions {
     publicDirs: string | string[];
     cookie_secret: string;
     useFakeRedis: boolean;
-    redis: any;
-    redis_prefix: string;
+    redis?: any;
+    redis_prefix?: string;
     session_name: string;
     session_secret: string;
 }
