@@ -15,7 +15,7 @@ const compress = require("compression");
 const helmet = require("helmet");
 const uuid = require("uuid/v4");
 const di_1 = require("@pii/di");
-const express = require("express");
+const express_1 = require("express");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const application_1 = require("@pii/application");
@@ -38,8 +38,8 @@ class ExpressServer extends application_1.Server {
         }
         super(options);
         this.getLogTransports();
-        this.log = di_1.Container.get(application_1.LoggerToken) || {};
-        this.express = express();
+        this.log = di_1.Container.get(application_1.LoggerToken) || new application_1.FakeLogger();
+        this.express = express_1.default();
     }
     getLogTransports() {
         const consoleTransport = new winston.transports.Console({
@@ -68,7 +68,7 @@ class ExpressServer extends application_1.Server {
             }
             if (this.options.publicDirs && this.options.publicDirs instanceof Array) {
                 this.options.publicDirs.forEach(p => {
-                    this.express.use(express.static(p));
+                    this.express.use(express_1.default.static(p));
                 });
             }
             this.express.set('trust proxy', 1);

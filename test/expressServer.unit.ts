@@ -4,6 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
+
 export {}
 
 const requireTest = () => {
@@ -157,8 +158,8 @@ test('call start', async () => {
   expect.assertions(3)
   const unit = requireTest()
   const { Container } = require('@pii/di')
-  const { FakeLogger, LoggerToken } = require('@pii/application')
-  Container.addSingleton(LoggerToken, new FakeLogger())
+  const { ConsoleLogger, LoggerToken } = require('@pii/application')
+  Container.addSingleton(LoggerToken, new ConsoleLogger())
   const server = new unit.ExpressServer({
     viewDir: './views',
     viewEngine: 'jade',
@@ -188,8 +189,8 @@ test('call start without server.serverInstance', async () => {
   expect.assertions(2)
   const unit = requireTest()
   const { Container } = require('@pii/di')
-  const { FakeLogger, LoggerToken } = require('@pii/application')
-  Container.addSingleton(LoggerToken, new FakeLogger())
+  const { ConsoleLogger, LoggerToken } = require('@pii/application')
+  Container.addSingleton(LoggerToken, new ConsoleLogger())
   const server = new unit.ExpressServer({
     viewDir: './views',
     viewEngine: 'jade',
@@ -411,7 +412,7 @@ test('call errorHandler with re.xhr', async () => {
   expect(nextFn).toHaveBeenNthCalledWith(2, new Error('Not Found : http://'))
   expect(renderFn).toBeCalledWith('error', {
     message: 'fail',
-    error: { message: 'fail' },
+    error: expect.anything(),
     title: 'Error'
   })
   expect(status2Fn).toBeCalledWith(404)

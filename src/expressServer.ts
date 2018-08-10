@@ -12,7 +12,7 @@ import * as compress from 'compression'
 import * as helmet from 'helmet'
 import * as uuid from 'uuid/v4'
 import { Container } from '@pii/di'
-import * as express from 'express'
+import ExpressJS, * as express from 'express'
 import * as morgan from 'morgan'
 import * as cookieParser from 'cookie-parser'
 import {
@@ -20,6 +20,7 @@ import {
   Exception,
   ILogger,
   LoggerToken,
+  FakeLogger,
   LogTransportToken,
   RequestExtensionToken
 } from '@pii/application'
@@ -50,8 +51,8 @@ export class ExpressServer extends Server<http.Server, ExpressServerOptions> {
     }
     super(options)
     this.getLogTransports()
-    this.log = Container.get<ILogger>(LoggerToken) || ({} as ILogger)
-    this.express = express()
+    this.log = Container.get<ILogger>(LoggerToken) || new FakeLogger()
+    this.express = ExpressJS()
   }
 
   public getLogTransports () {
@@ -85,7 +86,7 @@ export class ExpressServer extends Server<http.Server, ExpressServerOptions> {
     }
     if (this.options.publicDirs && this.options.publicDirs instanceof Array) {
       this.options.publicDirs.forEach(p => {
-        this.express.use(express.static(p))
+        this.express.use(ExpressJS.static(p))
       })
     }
     this.express.set('trust proxy', 1)
