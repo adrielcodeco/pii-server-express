@@ -26,9 +26,15 @@ script:
   - npm run typecheck
   - npm run build
   - npm run test
-  - npm run coveralls
 jobs:
   include:
+    - stage: Coveralls
+      deploy:
+        - provider: script
+          script: npm run coveralls
+          on:
+            branch: master
+            tags: true
     - stage: Github Release
       install: skip
       script: skip
@@ -53,6 +59,8 @@ jobs:
             tags: true
 stages:
   - test
+  - name: Coveralls
+    if: tag IS present
   - name: Github Release
     if: tag IS present
   - name: Deploy

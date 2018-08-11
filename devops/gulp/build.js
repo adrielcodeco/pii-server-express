@@ -17,7 +17,7 @@ gulp.task('ts-build', () => {
   return merge([
     tsResult.dts.pipe(gulp.dest(tsProject.config.compilerOptions.outDir)),
     tsResult.js
-      .pipe(prettierEslint())
+      // .pipe(prettierEslint())
       .pipe(
         sourcemaps.mapSources((sourcePath, file) => {
           const absolute = path.resolve(
@@ -32,7 +32,7 @@ gulp.task('ts-build', () => {
         })
       )
       .pipe(
-        sourcemaps.write('.')
+        sourcemaps.write('.', { includeContent: false })
       )
       .pipe(gulp.dest(tsProject.config.compilerOptions.outDir))
   ])

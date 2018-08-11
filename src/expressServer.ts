@@ -12,7 +12,7 @@ import * as compress from 'compression'
 import * as helmet from 'helmet'
 import * as uuid from 'uuid/v4'
 import { Container } from '@pii/di'
-import express from 'express'
+import ExpressJS, * as express from 'express'
 import * as morgan from 'morgan'
 import * as cookieParser from 'cookie-parser'
 import {
@@ -20,11 +20,15 @@ import {
   Exception,
   ILogger,
   LoggerToken,
-  LogTransportToken
+  FakeLogger,
+  LogTransportToken,
+  RequestExtensionToken
 } from '@pii/application'
 import { ExpressRouter, ExpressRouterToken } from './expressRouter'
 import { ExpressServerOptions } from './expressServerOptions'
 const winston = require('winston')
+
+export type RequestExtension = (req: any, res: any, next: Function) => void
 
 export class ExpressServer extends Server<http.Server, ExpressServerOptions> {
   public express: express.Express
@@ -35,7 +39,7 @@ export class ExpressServer extends Server<http.Server, ExpressServerOptions> {
     if (!options) {
       options = {
         viewDir: path.resolve(process.cwd(), './views'),
-        viewEngine: 'jade',
+        viewEngine: 'pug',
         publicDirs: path.resolve(process.cwd(), './public'),
         cookie_secret: 'pii-express-server-cookie-secret',
         useFakeRedis: true,
@@ -47,8 +51,8 @@ export class ExpressServer extends Server<http.Server, ExpressServerOptions> {
     }
     super(options)
     this.getLogTransports()
-    this.log = Container.get<ILogger>(LoggerToken) || ({} as ILogger)
-    this.express = express()
+    this.log = Container.get<ILogger>(LoggerToken) || new FakeLogger()
+    this.express = ExpressJS()
   }
 
   public getLogTransports () {
@@ -82,7 +86,7 @@ export class ExpressServer extends Server<http.Server, ExpressServerOptions> {
     }
     if (this.options.publicDirs && this.options.publicDirs instanceof Array) {
       this.options.publicDirs.forEach(p => {
-        this.express.use(express.static(p))
+        this.express.use(ExpressJS.static(p))
       })
     }
     this.express.set('trust proxy', 1)
@@ -121,6 +125,11 @@ export class ExpressServer extends Server<http.Server, ExpressServerOptions> {
   }
 
   public async init (): Promise<void> {
+    const requestExtensions = Container.getServices<RequestExtension>(RequestExtensionToken)
+    requestExtensions.forEach(ext => {
+      this.express.use(ext)
+    })
+
     await this.authentication()
 
     this.express.use(this.initialLocals.bind(this))
@@ -154,9 +163,9 @@ export class ExpressServer extends Server<http.Server, ExpressServerOptions> {
 
     await this.loadRoutes()
 
-    const router = Container.get<ExpressRouter>(ExpressRouterToken)
-    if (router) {
-      router.init(this.express)
+    const routers = Container.getServices<ExpressRouter>(ExpressRouterToken)
+    if (routers && routers.length > 0) {
+      routers.forEach(router => router.init(this.express))
     }
 
     // await this.errorHandler(this.server)

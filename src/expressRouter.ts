@@ -8,10 +8,8 @@ import * as express from 'express'
 import { Router } from '@pii/application'
 import { Token } from '@pii/di'
 
-export class ExpressRouter extends Router {
-  public async init (server: express.Express): Promise<void> {
-    // does nothing
-  }
+export abstract class ExpressRouter extends Router {
+  abstract async init (server: express.Express): Promise<void>
 }
 
 export const ExpressRouterToken = Token(ExpressRouter)

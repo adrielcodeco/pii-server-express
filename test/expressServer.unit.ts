@@ -4,6 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
+
 export {}
 
 const requireTest = () => {
@@ -411,7 +412,7 @@ test('call errorHandler with re.xhr', async () => {
   expect(nextFn).toHaveBeenNthCalledWith(2, new Error('Not Found : http://'))
   expect(renderFn).toBeCalledWith('error', {
     message: 'fail',
-    error: { message: 'fail' },
+    error: expect.anything(),
     title: 'Error'
   })
   expect(status2Fn).toBeCalledWith(404)
