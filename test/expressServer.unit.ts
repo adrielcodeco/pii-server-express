@@ -158,8 +158,8 @@ test('call start', async () => {
   expect.assertions(3)
   const unit = requireTest()
   const { Container } = require('@pii/di')
-  const { ConsoleLogger, LoggerToken } = require('@pii/application')
-  Container.addSingleton(LoggerToken, new ConsoleLogger())
+  const { FakeLogger, LoggerToken } = require('@pii/application')
+  Container.addSingleton(LoggerToken, new FakeLogger())
   const server = new unit.ExpressServer({
     viewDir: './views',
     viewEngine: 'jade',
@@ -189,8 +189,8 @@ test('call start without server.serverInstance', async () => {
   expect.assertions(2)
   const unit = requireTest()
   const { Container } = require('@pii/di')
-  const { ConsoleLogger, LoggerToken } = require('@pii/application')
-  Container.addSingleton(LoggerToken, new ConsoleLogger())
+  const { FakeLogger, LoggerToken } = require('@pii/application')
+  Container.addSingleton(LoggerToken, new FakeLogger())
   const server = new unit.ExpressServer({
     viewDir: './views',
     viewEngine: 'jade',
