@@ -188,20 +188,24 @@ export class ExpressServer extends Server<http.Server, ExpressServerOptions> {
     await new Promise((resolve, reject) => {
       try {
         this.serverInstance = this.express.listen(this.options.port, () => {
-          const projectName = require(path.resolve(
-            process.cwd(),
-            './package.json'
-          )).name
-          this.log.info(
-            `${projectName} started on port ${
+          try {
+            const projectName = require(path.resolve(
+              process.cwd(),
+              './package.json'
+            )).name
+            this.log.info(
+              `${projectName} started on port ${
               (
                 (
                   this.serverInstance || ({ address: () => ({}) } as any)
                 ).address() || ({} as any)
               ).port
-            }`
-          )
-          resolve()
+              }`
+            )
+            resolve()
+          } catch (err) {
+            reject(new Exception({ details: err }))
+          }
         })
       } catch (err) {
         reject(new Exception({ details: err }))

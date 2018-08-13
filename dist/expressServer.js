@@ -133,9 +133,14 @@ class ExpressServer extends application_1.Server {
             yield new Promise((resolve, reject) => {
                 try {
                     this.serverInstance = this.express.listen(this.options.port, () => {
-                        const projectName = require(path.resolve(process.cwd(), './package.json')).name;
-                        this.log.info(`${projectName} started on port ${((this.serverInstance || { address: () => ({}) }).address() || {}).port}`);
-                        resolve();
+                        try {
+                            const projectName = require(path.resolve(process.cwd(), './package.json')).name;
+                            this.log.info(`${projectName} started on port ${((this.serverInstance || { address: () => ({}) }).address() || {}).port}`);
+                            resolve();
+                        }
+                        catch (err) {
+                            reject(new application_1.Exception({ details: err }));
+                        }
                     });
                 }
                 catch (err) {

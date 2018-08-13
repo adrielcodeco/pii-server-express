@@ -14,10 +14,16 @@ const requireTest = () => {
 
 beforeAll(() => {
   jest.mock('express')
+  jest.mock('ioredis')
+  jest.mock('connect-redis')
+  jest.mock('express-session')
 })
 
 afterAll(() => {
   jest.unmock('express')
+  jest.unmock('ioredis')
+  jest.unmock('connect-redis')
+  jest.unmock('express-session')
 })
 
 test('require', () => {
@@ -67,7 +73,7 @@ test('new without ILogger', () => {
   }).not.toThrow()
 })
 
-test('call prepare', () => {
+test('call prepare', async () => {
   expect.assertions(1)
   const unit = requireTest()
   const server = new unit.ExpressServer({
@@ -81,7 +87,7 @@ test('call prepare', () => {
     session_name: 'pii-express-server-session-name',
     session_secret: 'pii-express-server-session-secret'
   })
-  return expect(server.prepare()).resolves.toBeUndefined()
+  await expect(server.prepare()).resolves.toBeUndefined()
 })
 
 test('call prepare without this.options', () => {
