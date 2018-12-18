@@ -4,17 +4,18 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import * as path from 'path'
-import * as http from 'http'
-import * as bodyParser from 'body-parser'
-import * as session from 'express-session'
-import * as compress from 'compression'
-import * as helmet from 'helmet'
-import * as uuid from 'uuid/v4'
+import path from 'path'
+import http from 'http'
+import util from 'util'
+import bodyParser from 'body-parser'
+import session from 'express-session'
+import compress from 'compression'
+import helmet from 'helmet'
+import uuid from 'uuid/v4'
 import { Container } from '@pii/di'
-import ExpressJS, * as express from 'express'
-import * as morgan from 'morgan'
-import * as cookieParser from 'cookie-parser'
+import express from 'express'
+import morgan from 'morgan'
+import cookieParser from 'cookie-parser'
 import {
   Server,
   Exception,
@@ -27,6 +28,7 @@ import {
 import { ExpressRouter, ExpressRouterToken } from './expressRouter'
 import { ExpressServerOptions } from './expressServerOptions'
 const winston = require('winston')
+const ExpressJS = require('express')
 
 export type RequestExtension = (req: any, res: any, next: Function) => void
 
@@ -38,15 +40,8 @@ export class ExpressServer extends Server<http.Server, ExpressServerOptions> {
   constructor (options?: ExpressServerOptions) {
     if (!options) {
       options = {
-        viewDir: path.resolve(process.cwd(), './views'),
-        viewEngine: 'pug',
-        publicDirs: path.resolve(process.cwd(), './public'),
-        cookie_secret: 'pii-express-server-cookie-secret',
-        useFakeRedis: true,
-        redis: {},
-        redis_prefix: 'pii-express-server-redis-prefix',
-        session_name: 'pii-express-server-session-name',
-        session_secret: 'pii-express-server-session-secret'
+        disable_viewcache: false,
+        compress_response: true
       } as ExpressServerOptions
     }
     super(options)
@@ -76,9 +71,16 @@ export class ExpressServer extends Server<http.Server, ExpressServerOptions> {
       this.express.set('view engine', this.options.viewEngine)
     }
     // this.server.use(favicon(path.resolve(this.options.publicDir, './img/favicon.ico')))
-    this.express.use(morgan(this.logFormatter, {
-      stream: this.log.stream
-    }) as any)
+    if (this.options.environment === 'production') {
+      this.express.use(morgan(this.logFormatter, {
+        stream: this.log.stream
+      }) as any)
+    } else {
+      this.express.use(morgan('dev', {
+        stream: this.log.stream
+      }) as any)
+    }
+
     this.express.use(bodyParser.json())
     this.express.use(bodyParser.urlencoded({ extended: false }))
     if (this.options.cookie_secret) {
@@ -89,26 +91,37 @@ export class ExpressServer extends Server<http.Server, ExpressServerOptions> {
         this.express.use(ExpressJS.static(p))
       })
     }
-    this.express.set('trust proxy', 1)
 
-    let redis
-    if (this.options.useFakeRedis || !this.options.redis) {
-      redis = require('fakeredis').createClient()
-    } else {
-      const ioRedis = require('ioredis')
-      redis = new ioRedis(this.options.redis)
+    if (this.options.environment === 'production') {
+      this.express.set('trust proxy', 1)
     }
-    const RedisStore = require('connect-redis')(session)
-    this.express.use(session({
-      store: new RedisStore({
-        client: redis,
-        prefix: this.options.redis_prefix
-      }),
-      secret: this.options.session_secret || `magma-secret${uuid()}`,
-      name: this.options.session_name,
-      resave: true,
-      saveUninitialized: true
-    }) as any)
+
+    if (this.options.session_secret) {
+      let redis
+      if (this.options.useFakeRedis || !this.options.redis) {
+        redis = require('fakeredis').createClient()
+      } else {
+        const ioRedis = require('ioredis')
+        redis = new ioRedis(this.options.redis)
+      }
+      const RedisStore = require('connect-redis')(session)
+      this.express.use(session({
+        store: new RedisStore({
+          client: redis,
+          prefix: this.options.redis_prefix
+        }),
+        secret: this.options.session_secret || `magma-secret${uuid()}`,
+        name: this.options.session_name,
+        resave: true,
+        saveUninitialized: true,
+        rolling: true,
+        cookie: {
+          httpOnly: this.options.sessionHttpOnly || true,
+          secure: this.options.sessionSecure || false,
+          sameSite: this.options.sessionSameSite || true
+        }
+      }) as any)
+    }
 
     // this.server.use(middleware.handle(i18next, {
     //   ignoreRoutes: ["/foo"],
@@ -125,28 +138,27 @@ export class ExpressServer extends Server<http.Server, ExpressServerOptions> {
   }
 
   public async init (): Promise<void> {
-    const requestExtensions = Container.getServices<RequestExtension>(RequestExtensionToken)
-    requestExtensions.forEach(ext => {
-      this.express.use(ext)
-    })
-
     await this.authentication()
 
     this.express.use(this.initialLocals.bind(this))
 
     // Environment dependent middleware
-    if (
-      this.options.environment !== 'production' &&
-      this.options.environment !== 'stage'
-    ) {
-      // Disable views cache
-      this.express.set('view cache', false)
-    } else {
-      // this.server.locals.cache = 'memory'
 
+    if (this.options.disable_viewcache) {
+      this.express.set('view cache', false)
+    }
+
+    if (this.options.compress_response) {
       // Should be placed before express.static
       this.express.use(compress())
     }
+
+    const requestExtensions = Container.getServices<RequestExtension>(
+      RequestExtensionToken
+    )
+    requestExtensions.forEach(ext => {
+      this.express.use(ext)
+    })
 
     // let RateLimit = require('express-rate-limit')
 
@@ -176,6 +188,7 @@ export class ExpressServer extends Server<http.Server, ExpressServerOptions> {
   }
 
   public async start (): Promise<void> {
+    this.log.info(`Express Server Starting`)
     await this.prepare()
     await this.init()
 
@@ -195,11 +208,11 @@ export class ExpressServer extends Server<http.Server, ExpressServerOptions> {
             )).name
             this.log.info(
               `${projectName} started on port ${
-              (
                 (
-                  this.serverInstance || ({ address: () => ({}) } as any)
-                ).address() || ({} as any)
-              ).port
+                  (
+                    this.serverInstance || ({ address: () => ({}) } as any)
+                  ).address() || ({} as any)
+                ).port
               }`
             )
             resolve()
@@ -214,7 +227,9 @@ export class ExpressServer extends Server<http.Server, ExpressServerOptions> {
   }
 
   public async stop (): Promise<void> {
-    !!this.serverInstance && this.serverInstance.close()
+    if (this.serverInstance) {
+      await util.promisify(this.serverInstance.close)()
+    }
   }
 
   protected logFormatter (
@@ -312,13 +327,21 @@ export class ExpressServer extends Server<http.Server, ExpressServerOptions> {
     res: express.Response,
     next: express.NextFunction
   ): Promise<void> {
-    if (!res) return void (!!next && next())
-    if (!res.locals) res.locals = {}
-    if (req && req.headers) {
-      res.locals.url = req.protocol + '://' + req.headers.host + req.url
-    }
-    res.locals.env = this.options.environment
-    next()
+    await new Promise(resolve => {
+      process.nextTick(() => {
+        if (!res) {
+          resolve()
+          return void (!!next && next())
+        }
+        if (!res.locals) res.locals = {}
+        if (req && req.headers) {
+          res.locals.url = req.protocol + '://' + req.headers.host + req.url
+        }
+        res.locals.env = this.options.environment
+        resolve()
+        return void (!!next && next())
+      })
+    })
   }
 
   public async authentication (): Promise<void> {

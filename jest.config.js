@@ -9,11 +9,10 @@ module.exports = {
   testEnvironment: 'node',
   globals: {
     'ts-jest': {
-      skipBabel: true,
-      tsConfigFile: './tsconfig.jest.json'
+      tsConfig: './tsconfig.jest.json'
     }
   },
   transform: {
-    '^.+\\.[tj]s$': 'ts-jest'
+    '^.+\\.ts$': 'ts-jest'
   }
 }

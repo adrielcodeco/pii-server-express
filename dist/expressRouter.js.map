@@ -1,1 +1,1 @@
-{"version":3,"sources":["../src/expressRouter.ts"],"names":[],"mappings":";;AAOA,kDAAyC;AACzC,gCAA+B;AAE/B,mBAAoC,SAAQ,oBAAM;CAEjD;AAFD,sCAEC;AAEY,QAAA,kBAAkB,GAAG,UAAK,CAAC,aAAa,CAAC,CAAA","file":"expressRouter.js"}
+{"version":3,"sources":["../src/expressRouter.ts"],"names":[],"mappings":";;;;;;;;;;;;;;;AAOA,gDAAyC;AACzC,8BAA+B;AAE/B;IAA4C,iCAAM;IAAlD;;IAEA,CAAC;IAAD,oBAAC;AAAD,CAFA,AAEC,CAF2C,oBAAM,GAEjD;AAFqB,sCAAa;AAItB,QAAA,kBAAkB,GAAG,UAAK,CAAC,aAAa,CAAC,CAAA","file":"expressRouter.js"}

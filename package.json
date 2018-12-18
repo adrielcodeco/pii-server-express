@@ -35,8 +35,8 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@pii/application": "^1.1.1",
-    "@pii/di": "^1.1.0",
+    "@pii/application": "file:../@pii-application",
+    "@pii/di": "file:../@pii-di",
     "body-parser": "^1.18.3",
     "colors": "github:adrielcodeco/colors.js",
     "compression": "^1.7.2",

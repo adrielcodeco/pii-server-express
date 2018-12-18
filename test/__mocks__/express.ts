@@ -1,4 +1,4 @@
-export default function express () {
+function express () {
   return {
     set: () => {
       // does nothing
@@ -14,9 +14,11 @@ export default function express () {
 
 // @ts-ignore
 express.static = jest.fn()
+// @ts-ignore
+module.exports = express
 
-export class Express { }
-export interface Request { }
-export interface Response { }
-export interface NextFunction { }
-export interface Router { }
+export class Express {}
+export interface Request {}
+export interface Response {}
+export interface NextFunction {}
+export interface Router {}

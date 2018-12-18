@@ -1,6 +1,6 @@
 /// <reference types="node" />
-import * as http from 'http';
-import * as express from 'express';
+import http from 'http';
+import express from 'express';
 import { Server, ILogger } from '@pii/application';
 import { ExpressServerOptions } from './expressServerOptions';
 export declare type RequestExtension = (req: any, res: any, next: Function) => void;
